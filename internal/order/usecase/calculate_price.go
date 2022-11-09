@@ -18,11 +18,12 @@ type OrderOutputDTO struct {
 }
 
 type CalculateFinalPriceUseCase struct {
-	OrderRepository entity.OrderRepositoryInterface //mega acoplamento
+	OrderRepository entity.OrderRepositoryInterface
 }
 
-func NewCalculateFinalPriceUseCase(orderRepository entity.OrderRepositoryInterface) CalculateFinalPriceUseCase {
-	return CalculateFinalPriceUseCase{
+// na aula é passado database.OrderRepository
+func NewCalculateFinalPriceUseCase(orderRepository entity.OrderRepositoryInterface) *CalculateFinalPriceUseCase {
+	return &CalculateFinalPriceUseCase{
 		OrderRepository: orderRepository,
 	}
 }

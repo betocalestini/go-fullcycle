@@ -1,0 +1,94 @@
+version: '3'
+
+services:
+   app:
+      build: .
+      container_name: golang
+      hostname: golang
+      volumes:
+         - .:/go/src/app
+      ports:
+         - '8000:8000'
+      networks:
+         - rede1
+
+   rabbitmq:
+      image: rabbitmq:3.8.16-management
+      container_name: rabbitmq
+      hostname: rabbitmq
+      ports:
+         - '15672:15672'
+         - '15692:15692'
+         - '5672:5672'
+      environment:
+         - RABBITMQ_DEFAULT_USER=guest
+         - RABBITMQ_DEFAULT_PASS=guest
+         - RABBITMQ_DEFAULT_VHOST=/
+      networks:
+         - rede1
+
+   postgres:
+      image: 'postgres:latest'
+      container_name: postgres-fc
+      hostname: postgres
+      restart: always
+      environment:
+         - POSTGRES_USER=userPostgres
+         - POSTGRES_DB=fullcycle
+         - POSTGRES_PASSWORD=passPostgres
+         - TimeZone=America/Sao_Paulo
+      ports:
+         - '5432:5432'
+      volumes:
+         - ./.docker/dbdata:/var/lib/postgresql/data
+         - ./.docker/migration/docker-database-initial.sql:/docker-entrypoint-initdb.d/docker-database-initial.sql
+      networks:
+         - rede1
+           # aliases:
+           #    - database
+
+   pgadmin-compose:
+      image: dpage/pgadmin4
+      container_name: pgadmin-udemy
+      restart: always
+      environment:
+         PGADMIN_DEFAULT_EMAIL: 'betocalestini@hotmail.com'
+         PGADMIN_DEFAULT_PASSWORD: 'senhaPgAdmin'
+         TimeZone: 'America/Sao_Paulo'
+      ports:
+         - '8080:80'
+      depends_on:
+         - postgres
+      networks:
+         - rede1
+
+   prometheus:
+      image: prom/prometheus
+      container_name: prometheus
+      hostname: prometheus
+      ports:
+         - '9090:9090'
+      volumes:
+         - ./.docker/prometheus:/etc/prometheus
+      command:
+         - '--config.file=/etc/prometheus/prometheus.yml'
+         - '--storage.tsdb.path=/prometheus'
+         - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+         - '--web.console.templates=/usr/share/prometheus/consoles'
+      networks:
+         - rede1
+
+   grafana:
+      image: grafana/grafana
+      container_name: grafana
+      hostname: grafana
+      restart: always
+      ports:
+         - '3000:3000'
+      networks:
+         - rede1
+
+networks:
+   rede1:
+      name: rede1
+      driver: bridge
